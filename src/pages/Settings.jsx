@@ -12,6 +12,7 @@ const styles = {
   label: { fontSize: '11px', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: '5px' },
   input: { width: '100%', background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.09)', borderRadius: '7px', padding: '8px 12px', fontSize: '12px', color: 'white', outline: 'none', marginBottom: '10px', boxSizing: 'border-box' },
   select: { width: '100%', background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.09)', borderRadius: '7px', padding: '8px 12px', fontSize: '12px', color: 'white', outline: 'none', marginBottom: '10px' },
+  option: { background: '#0d0d1a', color: 'white' },
   row: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 0', borderBottom: '0.5px solid rgba(255,255,255,0.04)' },
   rowLabel: { fontSize: '12px', color: 'rgba(255,255,255,0.65)' },
   rowSub: { fontSize: '10px', color: 'rgba(255,255,255,0.28)', marginTop: '1px' },
@@ -74,19 +75,19 @@ function Settings() {
             <div style={styles.panelTitle}>Preferences</div>
             <label style={styles.label}>Language</label>
             <select style={styles.select}>
-              <option>English</option>
-              <option>Tamil</option>
-              <option>Hindi</option>
+              <option style={styles.option}>English</option>
+              <option style={styles.option}>Tamil</option>
+              <option style={styles.option}>Hindi</option>
             </select>
             <label style={styles.label}>Time Zone</label>
             <select style={styles.select}>
-              <option>IST (UTC+5:30)</option>
-              <option>UTC</option>
+              <option style={styles.option}>IST (UTC+5:30)</option>
+              <option style={styles.option}>UTC</option>
             </select>
             <label style={styles.label}>Theme</label>
             <select style={styles.select}>
-              <option>Dark</option>
-              <option>Light</option>
+              <option style={styles.option}>Dark</option>
+              <option style={styles.option}>Light</option>
             </select>
           </div>
         </div>

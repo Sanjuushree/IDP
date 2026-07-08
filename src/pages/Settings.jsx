@@ -33,6 +33,9 @@ function Settings() {
   const [notifs, setNotifs] = useState({ email: true, risk: true, weekly: false });
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [language, setLanguage] = useState('English');
+  const [timezone, setTimezone] = useState('IST (UTC+5:30)');
+  const [theme, setTheme] = useState('Dark');
 
   useEffect(() => {
     fetch(`${BACKEND}/settings`)
@@ -40,6 +43,9 @@ function Settings() {
       .then(data => {
         setName(data.full_name);
         setEmail(data.email);
+        setLanguage(data.language);
+        setTimezone(data.timezone);
+        setTheme(data.theme);
       })
       .catch(err => console.error("Failed to load settings:", err));
   }, []);
@@ -49,7 +55,13 @@ function Settings() {
       await fetch(`${BACKEND}/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ full_name: name, email: email })
+        body: JSON.stringify({
+          full_name: name,
+          email: email,
+          language: language,
+          timezone: timezone,
+          theme: theme
+        })
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
@@ -74,18 +86,18 @@ function Settings() {
           <div style={styles.panel}>
             <div style={styles.panelTitle}>Preferences</div>
             <label style={styles.label}>Language</label>
-            <select style={styles.select}>
+            <select style={styles.select} value={language} onChange={e => setLanguage(e.target.value)}>
               <option style={styles.option}>English</option>
               <option style={styles.option}>Tamil</option>
               <option style={styles.option}>Hindi</option>
             </select>
             <label style={styles.label}>Time Zone</label>
-            <select style={styles.select}>
+            <select style={styles.select} value={timezone} onChange={e => setTimezone(e.target.value)}>
               <option style={styles.option}>IST (UTC+5:30)</option>
               <option style={styles.option}>UTC</option>
             </select>
             <label style={styles.label}>Theme</label>
-            <select style={styles.select}>
+            <select style={styles.select} value={theme} onChange={e => setTheme(e.target.value)}>
               <option style={styles.option}>Dark</option>
               <option style={styles.option}>Light</option>
             </select>

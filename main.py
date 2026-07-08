@@ -39,6 +39,9 @@ class TranslateRequest(BaseModel):
 class SettingsUpdate(BaseModel):
     full_name: str
     email: str
+    language: str
+    timezone: str
+    theme: str
 
 def calculate_risk_score(text):
     high_keywords = ["terminate", "penalty", "liability", "breach", "sue"]
@@ -204,7 +207,10 @@ def update_settings(data: SettingsUpdate):
     try:
         res = supabase.table("settings").update({
             "full_name": data.full_name,
-            "email": data.email
+            "email": data.email,
+            "language": data.language,
+            "timezone": data.timezone,
+            "theme": data.theme
         }).eq("id", 1).execute()
         return res.data
     except Exception as e:

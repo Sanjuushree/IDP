@@ -91,8 +91,8 @@ function Upload() {
             {uploading ? 'Analysing...' : 'Analyse Contract'}
           </button>
         ) : (
-          <button style={styles.browseBtn} onClick={e => e.stopPropagation()}>Browse Files</button>
-        )}
+          <button style={styles.browseBtn} onClick={e => { e.stopPropagation(); document.getElementById('file-input').click(); }}>Browse Files</button>
+          )}
         <div style={styles.fmts}>
           <span style={styles.fmt}>PDF</span>
           <span style={styles.fmt}>DOCX</span>

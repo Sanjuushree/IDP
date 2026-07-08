@@ -36,6 +36,10 @@ class TranslateRequest(BaseModel):
     text: str
     language: str
 
+class SettingsUpdate(BaseModel):
+    full_name: str
+    email: str
+
 def calculate_risk_score(text):
     high_keywords = ["terminate", "penalty", "liability", "breach", "sue"]
     medium_keywords = ["confidential", "restrict", "limit", "obligation"]
@@ -184,5 +188,24 @@ async def delete_document(doc_id: int):
     try:
         supabase.table("contracts").delete().eq("id", doc_id).execute()
         return {"status": "deleted"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/settings")
+def get_settings():
+    try:
+        res = supabase.table("settings").select("*").eq("id", 1).single().execute()
+        return res.data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.put("/settings")
+def update_settings(data: SettingsUpdate):
+    try:
+        res = supabase.table("settings").update({
+            "full_name": data.full_name,
+            "email": data.email
+        }).eq("id", 1).execute()
+        return res.data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

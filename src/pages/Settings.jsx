@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
+const BACKEND = "https://idp-3yw3.onrender.com";
 
 const styles = {
   page: { background: '#08080f', minHeight: '100vh', padding: '24px', color: 'white' },
@@ -29,10 +30,31 @@ function Toggle({ on, onToggle }) {
 function Settings() {
   const [saved, setSaved] = useState(false);
   const [notifs, setNotifs] = useState({ email: true, risk: true, weekly: false });
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  useEffect(() => {
+    fetch(`${BACKEND}/settings`)
+      .then(res => res.json())
+      .then(data => {
+        setName(data.full_name);
+        setEmail(data.email);
+      })
+      .catch(err => console.error("Failed to load settings:", err));
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      await fetch(`${BACKEND}/settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ full_name: name, email: email })
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error("Failed to save settings:", err);
+    }
   };
 
   return (
@@ -44,9 +66,9 @@ function Settings() {
           <div style={styles.panel}>
             <div style={styles.panelTitle}>Profile</div>
             <label style={styles.label}>Full Name</label>
-            <input style={styles.input} defaultValue="Sanjuushree R" />
+            <input style={styles.input} value={name} onChange={e => setName(e.target.value)} />
             <label style={styles.label}>Email</label>
-            <input style={styles.input} defaultValue="sanjurajendran2007@gmail.com" />
+            <input style={styles.input} value={email} onChange={e => setEmail(e.target.value)} />
           </div>
           <div style={styles.panel}>
             <div style={styles.panelTitle}>Preferences</div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { supabase } from '../supabase';
+
 
 const styles = {
   page: { background: '#08080f', minHeight: '100vh', padding: '24px', color: 'white' },

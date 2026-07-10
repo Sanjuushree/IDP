@@ -217,3 +217,59 @@ def update_settings(data: SettingsUpdate):
         return res.data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+class SearchRequest(BaseModel):
+    query: str
+    doc_id: int
+
+@app.post("/search/")
+async def search_clause(request: SearchRequest):
+    try:
+        res = supabase.table("contracts").select("*").eq("id", request.doc_id).single().execute()
+        doc = res.data
+        text = doc.get("extracted_text", "")
+        chat_completion = groq_client.chat.completions.create(
+            messages=[{"role": "user", "content": f'Search for "{request.query}" in this contract and return relevant clauses/sentences. If not found, say "No relevant clauses found." Keep it concise.\n\nContract:\n{text[:3000]}'}],
+            model="llama-3.3-70b-versatile",
+        )
+        return {"result": chat_completion.choices[0].message.content.strip()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/report/{doc_id}")
+async def generate_report(doc_id: int):
+    try:
+        res = supabase.table("contracts").select("*").eq("id", doc_id).single().execute()
+        doc = res.data
+        chat_completion = groq_client.chat.completions.create(
+            messages=[{"role": "user", "content": f"""Generate a professional contract analysis report.
+
+Document: {doc.get('filename')}
+Risk Level: {doc.get('risk_score')}
+Summary: {doc.get('summary')}
+Text: {doc.get('extracted_text', '')[:2000]}
+
+Write a structured report with these sections:
+1. Executive Summary
+2. Key Clauses Identified
+3. Risk Assessment
+4. Recommendations
+5. Conclusion"""}],
+            model="llama-3.3-70b-versatile",
+        )
+        return {"filename": doc.get("filename"), "risk_score": doc.get("risk_score"), "report": chat_completion.choices[0].message.content.strip()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/classify/{doc_id}")
+async def classify_document(doc_id: int):
+    try:
+        res = supabase.table("contracts").select("*").eq("id", doc_id).single().execute()
+        doc = res.data
+        text = doc.get("extracted_text", "")
+        chat_completion = groq_client.chat.completions.create(
+            messages=[{"role": "user", "content": f"Classify this document into ONE type: NDA, Employment Agreement, Service Agreement, Sales Contract, Lease Agreement, Partnership Agreement, or Other. Return ONLY the type name.\n\nText:\n{text[:2000]}"}],
+            model="llama-3.3-70b-versatile",
+        )
+        return {"doc_type": chat_completion.choices[0].message.content.strip()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

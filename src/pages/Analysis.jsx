@@ -42,6 +42,19 @@ function Analysis() {
   const [documents, setDocuments] = useState([]);
   const [selectedDoc, setSelectedDoc] = useState(null);
 
+  // Clause Search
+  const [clauseQuery, setClauseQuery] = useState('');
+  const [clauseResult, setClauseResult] = useState('');
+  const [clauseSearching, setClauseSearching] = useState(false);
+
+  // Report
+  const [report, setReport] = useState('');
+  const [reportLoading, setReportLoading] = useState(false);
+
+  // Classification
+  const [docType, setDocType] = useState('');
+  const [classifying, setClassifying] = useState(false);
+
   useEffect(() => {
     fetch(`${BACKEND}/documents`)
       .then(res => res.json())
@@ -53,6 +66,68 @@ function Analysis() {
       });
   }, []);
 
+  useEffect(() => {
+    if (selectedDoc) {
+      setDocType('');
+      setReport('');
+      setClauseResult('');
+      classifyDoc(selectedDoc.id);
+    }
+  }, [selectedDoc?.id]);
+
+  const classifyDoc = async (id) => {
+    setClassifying(true);
+    try {
+      const res = await fetch(`${BACKEND}/classify/${id}`);
+      const data = await res.json();
+      setDocType(data.doc_type || '');
+    } catch {
+      setDocType('Unknown');
+    }
+    setClassifying(false);
+  };
+
+  const searchClause = async () => {
+    if (!clauseQuery.trim() || !selectedDoc) return;
+    setClauseSearching(true);
+    setClauseResult('');
+    try {
+      const res = await fetch(`${BACKEND}/search/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: clauseQuery, doc_id: selectedDoc.id })
+      });
+      const data = await res.json();
+      setClauseResult(data.result || 'No results found.');
+    } catch {
+      setClauseResult('Search failed. Try again.');
+    }
+    setClauseSearching(false);
+  };
+
+  const generateReport = async () => {
+    if (!selectedDoc) return;
+    setReportLoading(true);
+    setReport('');
+    try {
+      const res = await fetch(`${BACKEND}/report/${selectedDoc.id}`);
+      const data = await res.json();
+      setReport(data.report || 'Report generation failed.');
+    } catch {
+      setReport('Report generation failed.');
+    }
+    setReportLoading(false);
+  };
+
+  const downloadReport = () => {
+    const blob = new Blob([report], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${selectedDoc?.filename}_report.txt`;
+    a.click();
+  };
+
   const sendMessage = async () => {
     if (!input.trim()) return;
     const userMsg = input;
@@ -63,10 +138,7 @@ function Analysis() {
       const res = await fetch(`${BACKEND}/chat/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: userMsg,
-          context: selectedDoc?.extracted_text || ''
-        })
+        body: JSON.stringify({ message: userMsg, context: selectedDoc?.extracted_text || '' })
       });
       const data = await res.json();
       setMessages(prev => [...prev, { role: 'ai', text: data.response }]);
@@ -156,9 +228,7 @@ function Analysis() {
         <div style={styles.grid2}>
           <div style={styles.card}>
             <div style={styles.label}>AI Summary</div>
-            <div style={styles.text}>
-              {selectedDoc.summary || 'No summary available.'}
-            </div>
+            <div style={styles.text}>{selectedDoc.summary || 'No summary available.'}</div>
           </div>
           <div style={styles.card}>
             <div style={styles.label}>Risk Score</div>
@@ -180,6 +250,10 @@ function Analysis() {
             <div style={styles.clauseItem}><div style={{ ...styles.dot, background: '#7c3aed' }}></div>File: {selectedDoc.filename}</div>
             <div style={styles.clauseItem}><div style={{ ...styles.dot, background: getRiskColor(selectedDoc.risk_score) }}></div>Risk: {selectedDoc.risk_score}</div>
             <div style={styles.clauseItem}><div style={{ ...styles.dot, background: '#22c55e' }}></div>Status: Analysed</div>
+            <div style={styles.clauseItem}>
+              <div style={{ ...styles.dot, background: '#a78bfa' }}></div>
+              Type: {classifying ? 'Detecting...' : (docType || '—')}
+            </div>
           </div>
         </div>
       ) : (
@@ -187,6 +261,28 @@ function Analysis() {
           <div style={styles.emptyText}>No Document Available For Analysis. Please upload a document first.</div>
         </div>
       )}
+
+      {/* Clause Search */}
+      <div style={styles.panel}>
+        <div style={styles.panelTitle}>🔎 Clause Search</div>
+        <div style={styles.inputRow}>
+          <input
+            style={styles.input}
+            value={clauseQuery}
+            onChange={e => setClauseQuery(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && searchClause()}
+            placeholder="Search for a clause (e.g. termination, penalty, confidentiality)..."
+          />
+          <button style={styles.sendBtn} onClick={searchClause} disabled={clauseSearching || !selectedDoc}>
+            {clauseSearching ? 'Searching...' : 'Search'}
+          </button>
+        </div>
+        {clauseResult && (
+          <div style={{ ...styles.text, background: 'rgba(124,58,237,0.06)', padding: '12px', borderRadius: '8px', marginTop: '12px' }}>
+            {clauseResult}
+          </div>
+        )}
+      </div>
 
       {/* Translation */}
       <div style={styles.panel}>
@@ -208,6 +304,30 @@ function Analysis() {
         {translated && (
           <div style={{ ...styles.text, background: 'rgba(124,58,237,0.06)', padding: '12px', borderRadius: '8px' }}>
             {translated}
+          </div>
+        )}
+      </div>
+
+      {/* AI Report Generator */}
+      <div style={styles.panel}>
+        <div style={styles.panelTitle}>📊 AI Report Generator</div>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: report ? '14px' : '0' }}>
+          <button
+            style={{ ...styles.sendBtn, opacity: (!selectedDoc || reportLoading) ? 0.6 : 1 }}
+            onClick={generateReport}
+            disabled={!selectedDoc || reportLoading}
+          >
+            {reportLoading ? 'Generating...' : '📄 Generate Report'}
+          </button>
+          {report && (
+            <button style={styles.translateBtn} onClick={downloadReport}>
+              ⬇️ Download
+            </button>
+          )}
+        </div>
+        {report && (
+          <div style={{ ...styles.text, fontSize: '12px', background: 'rgba(124,58,237,0.06)', padding: '14px', borderRadius: '8px', whiteSpace: 'pre-wrap', maxHeight: '320px', overflowY: 'auto' }}>
+            {report}
           </div>
         )}
       </div>

@@ -131,8 +131,8 @@ function Dashboard() {
             <div style={styles.ai} onClick={() => navigate('/analysis')}><span>⚠️</span><span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.55)' }}>Risk Detect</span></div>
             <div style={styles.ai} onClick={() => navigate('/analysis')}><span>📝</span><span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.55)' }}>Summarize</span></div>
             <div style={styles.ai} onClick={() => navigate('/analysis')}><span>🌐</span><span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.55)' }}>Translate</span></div>
-            <div style={styles.ai}><span>📊</span><span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.55)' }}>Report</span></div>
-          </div>
+            <div style={styles.ai} onClick={() => navigate('/analysis')}><span>📊</span><span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.55)' }}>Report</span></div>          
+            </div>
         </div>
       </div>
 
@@ -152,7 +152,7 @@ function Dashboard() {
             <div style={{ fontSize: '18px', marginBottom: '5px' }}>💬</div>
             <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)' }}>AI Chat</div>
           </div>
-          <div style={styles.ab}>
+          <div style={styles.ab} onClick={() => navigate('/analysis')}>
             <div style={{ fontSize: '18px', marginBottom: '5px' }}>📊</div>
             <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)' }}>Generate Report</div>
           </div>

@@ -73,7 +73,7 @@ function Analysis() {
       setClauseResult('');
       classifyDoc(selectedDoc.id);
     }
-  }, [selectedDoc?.id]);
+  }, [selectedDoc]);
 
   const classifyDoc = async (id) => {
     setClassifying(true);
